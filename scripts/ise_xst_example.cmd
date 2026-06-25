@@ -1,0 +1,11 @@
+run 
+-ifn my_chip.prj
+-ifmt Verilog 
+-ofn my_chip
+-ofmt ngc 
+-p xc2vp20fg676-5
+-opt_mode SPEED 
+-uc my_chip.xcf 
+-equivalent_register_removal NO 
+-resource_sharing NO
+-max_fanout 25

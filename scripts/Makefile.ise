@@ -1,0 +1,161 @@
+# Makefile for Xilinx
+
+NAME = my_chip
+
+PART = xc2vp20fg676-5
+
+TOOL = xilinx/6.2i
+
+# high, med or low
+EFFORT = high
+
+#SEED = 29
+SEED = 13
+
+# Default: build everything up to timing report.
+
+all : ${NAME}.twr
+
+prom : ${NAME}_0.mcs
+
+xst : ${NAME}.ngc
+
+# make multi: try multiple seeds
+
+multi : ${NAME}.ncd ${NAME}_2.ncd ${NAME}_3.ncd ${NAME}_4.ncd ${NAME}_5.ncd \
+ ${NAME}_6.ncd ${NAME}_7.ncd ${NAME}_8.ncd ${NAME}_9.ncd ${NAME}_10.ncd \
+ ${NAME}_11.ncd ${NAME}_12.ncd ${NAME}_13.ncd ${NAME}_14.ncd ${NAME}_15.ncd \
+ ${NAME}_16.ncd ${NAME}_17.ncd ${NAME}_18.ncd ${NAME}_19.ncd ${NAME}_20.ncd \
+ ${NAME}_21.ncd ${NAME}_22.ncd ${NAME}_23.ncd ${NAME}_24.ncd ${NAME}_25.ncd \
+ ${NAME}_26.ncd ${NAME}_27.ncd ${NAME}_28.ncd ${NAME}_29.ncd ${NAME}_30.ncd
+
+
+# make proms for release
+${NAME}.hex: ${NAME}.bit
+	promgen -w -p hex -x xcf04s xcf04s -u 0 ${NAME}.bit
+
+# Synthesize
+
+${NAME}.ngc : ../hdl/*.v
+	rm -rf xst
+	rm -f ${NAME}.ngc
+	xst -ifn ${NAME}.cmd -ofn ${NAME}_xst.log
+
+# Build ngd file (integrates ucf file and macros)
+
+${NAME}.ngd : ${NAME}.ngc ${NAME}.ucf
+	ngdbuild -p ${PART} -nt timestamp ${NAME}.ngc ${NAME}.ngd
+
+# Map
+
+${NAME}_map.ncd : ${NAME}.ngd
+	map -k 6 -tx on -o ${NAME}_map.ncd ${NAME}.ngd ${NAME}.pcf
+
+# Par
+
+${NAME}.ncd : ${NAME}_map.ncd
+	par -t ${SEED} -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}.ncd ${NAME}.pcf
+
+# Timing report
+
+${NAME}.twr : ${NAME}.ncd
+	trce -v 200 ${NAME}.ncd ${NAME}.pcf -o ${NAME}.twr
+
+# Bit file
+
+${NAME}.bit : ${NAME}.ncd
+	bitgen -w -f ${NAME}.ut_prom ${NAME}.ncd
+
+# Prom files
+
+${NAME}_0.mcs : ${NAME}.bit
+	promgen -w -x xcf04s xcf04s -u 0 ${NAME}.bit
+
+# Try PAR with many seeds...
+
+${NAME}_2.ncd : ${NAME}_map.ncd
+	par -t 2 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_2.ncd ${NAME}.pcf
+
+${NAME}_3.ncd : ${NAME}_map.ncd
+	par -t 3 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_3.ncd ${NAME}.pcf
+
+${NAME}_4.ncd : ${NAME}_map.ncd
+	par -t 4 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_4.ncd ${NAME}.pcf
+
+${NAME}_5.ncd : ${NAME}_map.ncd
+	par -t 5 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_5.ncd ${NAME}.pcf
+
+${NAME}_6.ncd : ${NAME}_map.ncd
+	par -t 6 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_6.ncd ${NAME}.pcf
+
+${NAME}_7.ncd : ${NAME}_map.ncd
+	par -t 7 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_7.ncd ${NAME}.pcf
+
+${NAME}_8.ncd : ${NAME}_map.ncd
+	par -t 8 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_8.ncd ${NAME}.pcf
+
+${NAME}_9.ncd : ${NAME}_map.ncd
+	par -t 9 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_9.ncd ${NAME}.pcf
+
+${NAME}_10.ncd : ${NAME}_map.ncd
+	par -t 10 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_10.ncd ${NAME}.pcf
+
+${NAME}_11.ncd : ${NAME}_map.ncd
+	par -t 11 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_11.ncd ${NAME}.pcf
+
+${NAME}_12.ncd : ${NAME}_map.ncd
+	par -t 12 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_12.ncd ${NAME}.pcf
+
+${NAME}_13.ncd : ${NAME}_map.ncd
+	par -t 13 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_13.ncd ${NAME}.pcf
+
+${NAME}_14.ncd : ${NAME}_map.ncd
+	par -t 14 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_14.ncd ${NAME}.pcf
+
+${NAME}_15.ncd : ${NAME}_map.ncd
+	par -t 15 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_15.ncd ${NAME}.pcf
+
+${NAME}_16.ncd : ${NAME}_map.ncd
+	par -t 16 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_16.ncd ${NAME}.pcf
+
+${NAME}_17.ncd : ${NAME}_map.ncd
+	par -t 17 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_17.ncd ${NAME}.pcf
+
+${NAME}_18.ncd : ${NAME}_map.ncd
+	par -t 18 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_18.ncd ${NAME}.pcf
+
+${NAME}_19.ncd : ${NAME}_map.ncd
+	par -t 19 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_19.ncd ${NAME}.pcf
+
+${NAME}_20.ncd : ${NAME}_map.ncd
+	par -t 20 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_20.ncd ${NAME}.pcf
+
+${NAME}_21.ncd : ${NAME}_map.ncd
+	par -t 21 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_21.ncd ${NAME}.pcf
+
+${NAME}_22.ncd : ${NAME}_map.ncd
+	par -t 22 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_22.ncd ${NAME}.pcf
+
+${NAME}_23.ncd : ${NAME}_map.ncd
+	par -t 23 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_23.ncd ${NAME}.pcf
+
+${NAME}_24.ncd : ${NAME}_map.ncd
+	par -t 24 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_24.ncd ${NAME}.pcf
+
+${NAME}_25.ncd : ${NAME}_map.ncd
+	par -t 25 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_25.ncd ${NAME}.pcf
+
+${NAME}_26.ncd : ${NAME}_map.ncd
+	par -t 26 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_26.ncd ${NAME}.pcf
+
+${NAME}_27.ncd : ${NAME}_map.ncd
+	par -t 27 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_27.ncd ${NAME}.pcf
+
+${NAME}_28.ncd : ${NAME}_map.ncd
+	par -t 28 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_28.ncd ${NAME}.pcf
+
+${NAME}_29.ncd : ${NAME}_map.ncd
+	par -t 29 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_29.ncd ${NAME}.pcf
+
+${NAME}_30.ncd : ${NAME}_map.ncd
+	par -t 30 -w -ol ${EFFORT} ${NAME}_map.ncd ${NAME}_30.ncd ${NAME}.pcf

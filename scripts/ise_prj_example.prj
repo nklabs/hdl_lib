@@ -1,0 +1,7 @@
+`timescale 1ns/1ns
+`include "../hdl/top.v"
+`include "../hdl/foo.v"
+`include "../hdl/bar.v"
+`include "/opt/models/dp/pcix_core/v5.0.0.56/verilog/src/wrap/pcix_lc_64xf.v"
+`include "/opt/models/dp/pcix_core/v5.0.0.56/verilog/src/xpci/pcix_fast.v"
+`include "/opt/xilinx/Xilinx/verilog/src/iSE/unisim_comp.v"
