@@ -24,10 +24,23 @@
 
 module tpg
 #(
-  parameter DATAWIDTH = 24
+  parameter DATAWIDTH = 24,
+  parameter SINGLE_CYCLE = 1, // Single cycle pulse for vsync and hsync
+  parameter PATTERN = 0, // 0 = sequence, 1 = blocks with fade
+
+  parameter HTOTAL = 320,
+  parameter HACTIVE = 256,
+  parameter HSYNC_START = 272,
+  parameter HSYNC_END = 204,
+
+  parameter VTOTAL = 108,
+  parameter VACTIVE = 96,
+  parameter VSYNC_START = 100,
+  parameter VSYNC_END = 104
 ) (
   input clk,
   input reset_l,
+  input video_in_tready,
   output reg video_in_hsync,
   output reg video_in_vsync,
   output reg video_in_de,
@@ -38,16 +51,6 @@ module tpg
   output reg video_in_tuser,
   output reg [DATAWIDTH-1:0] video_in_tdata
   );
-
-parameter HTOTAL = 320;
-parameter HACTIVE = 256;
-parameter HSYNC_START = 272;
-parameter HSYNC_END = 204;
-
-parameter VTOTAL = 108;
-parameter VACTIVE = 96;
-parameter VSYNC_START = 100;
-parameter VSYNC_END = 104;
 
 reg [11:0] row;
 reg [11:0] col;
@@ -72,10 +75,9 @@ always @(posedge clk)
       video_in_tfirst <= 0;
       pixel <= 0;
     end
-  else
+  else if (video_in_tready || !video_in_tvalid) // We pause if (!video_in_ready && video_in_tvalid)
     begin
       video_in_tvalid <= 0;
-      video_in_vsync <= 0;
       video_in_hsync <= 0;
       video_in_tuser <= 0;
       video_in_tlast <= 0;
@@ -104,17 +106,35 @@ always @(posedge clk)
           col <= col + 1'd1;
         end
 
-      if (col == HSYNC_START && row == VSYNC_START)
+      if (SINGLE_CYCLE)
         begin
-          video_in_tvalid <= 1;
-          video_in_vsync <= 1;
+          video_in_vsync <= 0;
+          if (col == HSYNC_START) // One cycle pulse
+            begin
+//              video_in_tvalid <= 1;
+              video_in_hsync <= 1;
+            end
+          if (col == HSYNC_START && row == VSYNC_START)
+            begin
+//              video_in_tvalid <= 1;
+              video_in_vsync <= 1;
+            end
+        end
+      else
+        begin
+          if (col >= HSYNC_START && col < HSYNC_END)
+            video_in_hsync <= 1;
+          if (col == HSYNC_START && row == VSYNC_START)
+            begin
+//              video_in_tvalid <= 1;
+              video_in_vsync <= 1;
+            end
+          else if (col == HSYNC_END-1 && row == VSYNC_END-1)
+            begin
+              video_in_vsync <= 0;
+            end
         end
 
-      if (col == HSYNC_START)
-        begin
-//          video_in_tvalid <= 1;
-          video_in_hsync <= 1;
-        end
 
       if (col >= 0 && col < HACTIVE && row >= 0 && row < VACTIVE)
         begin
@@ -135,8 +155,19 @@ always @(posedge clk)
             end
           else
             begin
-              // video_in_tdata <= { (col[7] ? 8'hFF : 8'h00), (col[6] ? 8'hff : 8'h00), (col[5] ? 8'hff : 8'h00) };
-              video_in_tdata <= pixel;
+              if (PATTERN == 1)
+                begin
+                  // Rectangles with fade to prove video is live
+                  if (row[4])
+                    video_in_tdata <= { (col[7] ? frame[7:0] : 8'h00), (col[6] ? 8'hff : 8'h00), (col[5] ? 8'hff : 8'h00) };
+                  else
+                    video_in_tdata <= { (col[7] ? 8'h00 : 8'hFF), (col[6] ? 8'h00 : 8'hFF), (col[5] ? 8'h00 : 8'hFF) };
+                end
+              else
+                begin
+                  // Or just counting..
+                  video_in_tdata <= pixel;
+                end
               pixel <= pixel + 1'd1;
             end
         end
