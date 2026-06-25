@@ -1,0 +1,38 @@
+# xsim Makefile
+
+SOURCES_SV = \
+  ...my system verilog sources..
+
+SOURCES = \
+  ...my verilog sources...
+
+# Run simulation
+
+sim: elab
+	xsim sim_snapshot --tclbatch xsim.tcl
+
+# Elaborate
+
+elab: compile
+	xelab --snapshot sim_snapshot aphy_tb
+
+# Compile
+
+compile:
+	xvlog $(SOURCES) -sv $(SOURCES_SV)
+
+# View waveform
+
+view:
+	xsim --gui sim_snapshot.wdb
+
+clean:
+	rm -rf xsim.dir
+	rm -f xsim.jou
+	rm -f xsim.log
+	rm -f xvlog.log
+	rm -f xvlog.pb
+	rm -f xsim_*.backup.*
+	rm -f sim_snapshot.wdb
+	rm -f xelab.log
+	rm -f xelab.pb

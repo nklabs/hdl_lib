@@ -1,0 +1,14 @@
+all: test1
+	@echo
+	@echo All tests passed!
+	@echo
+
+test1:
+	iverilog -g2012 -Pmy_tb.myparam=6\'d0 -c icarus_source_list && ./a.out | awk -f check.awk
+
+clean:
+	rm -f a.out
+	rm -f dump.vcd
+
+view:
+	gtkwave dump.vcd &

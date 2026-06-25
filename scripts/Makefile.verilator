@@ -1,0 +1,52 @@
+# Verilator Makefile
+# make TOP=topfile.sv
+
+TOP ?= mytop.sv
+
+TOPMOD=$(subst .sv,,$(subst .v,,$(TOP)))
+
+# Include files
+
+INCS= \
+
+# Source files
+
+SRCS= $(shell cat pam.lst)
+
+help:
+	@echo "\"make sim\"    to simulate in batch mode, record everything in dump.fst"
+	@echo
+	@echo "\"make view\"   to open gtkwave and view waveform dump.fst"
+	@echo
+	@echo "\"make clean\"  delete derived files"
+
+
+sim: testbench_$(TOPMOD)
+	./testbench_$(TOPMOD) | awk -f check.awk
+
+# Compile testbench and link
+
+testbench_$(TOPMOD): testbench.cpp obj_dir/V$(TOPMOD)__ALL.a
+	sed "s/Vtop/V$(TOPMOD)/g" <testbench.cpp >testbench_$(TOPMOD).cpp
+	g++ -I obj_dir -I/usr/local/share/verilator/include testbench_$(TOPMOD).cpp \
+	   /usr/local/share/verilator/include/verilated.cpp \
+	   /usr/local/share/verilator/include/verilated_fst_c.cpp \
+	   /usr/local/share/verilator/include/verilated_threads.cpp \
+	   -o testbench_$(TOPMOD) obj_dir/V$(TOPMOD)__ALL.a -lz
+
+# Verilate
+
+obj_dir/V$(TOPMOD)__ALL.a: $(SRCS) $(INCS)
+	verilator --relative-includes -CFLAGS -O0 -Wno-fatal --assert --trace-fst --Wno-UNOPTFLAT --trace-structs -Wall -Wno-UNUSED -Wno-PINCONNECTEMPTY -Wno-CASEX --top-module $(TOPMOD) --trace -cc $(SRCS)
+	(cd obj_dir; make -j 8 -f V$(TOPMOD).mk)
+
+#	rm -rf obj_dir
+
+
+clean:
+	rm -rf obj_dir testbench_$(TOPMOD) testbench_$(TOPMOD).cpp
+
+#	verilator -Wall -Wno-PINMISSING  --top-module $(TOPMOD) --trace -cc $(TOP)
+
+view:
+	gtkwave dump.fst &

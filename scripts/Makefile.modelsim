@@ -1,0 +1,72 @@
+# Makefile for ModelSim (requires gnu-make)
+# - Use Modelsim in batch mode for simulation
+# - Then use it in GUI mode to look at the waveform
+
+# Directory where "vsim" is located
+# Leave blank if it's in your path
+MODELSIM_PATH=
+
+# So that here documents work
+.ONESHELL:
+
+# Top module name
+TOP= top_tb
+
+# Include files
+
+INCS= \
+
+# Source files
+
+SRCS=$(shell cat top.lst)
+
+help:
+	@echo "\"make sim\"    to simulate in batch mode, record everything in vsim.wlf"
+	@echo
+	@echo "\"make view\"   to open ModelSim and view waveform vsim.wlf"
+	@echo "                  Hint: use file->dataset->reload to reload waveform after repeating \"make sim\""
+	@echo
+	@echo "\"make review\" to open ModelSim and restore saved waveform format"
+	@echo "                  Hint: select waveform window, hit Ctrl-S to save format"
+
+sim: vsim.wlf
+
+# Simulate, log all signals for viewing
+
+vsim.wlf: $(SRCS) $(INCS)
+	$(MODELSIM_PATH)vsim <<!
+	vlib work
+	vdel -all
+	vlog -svinputport=net $(SRCS) -lint
+	vsim -voptargs=+acc -L ovi_lfcpnx $(TOP)
+	log  -r /*
+	run -all
+	!
+
+# Use this to automatically search for missing modules (so you don't have to list all source files):
+#  vlog aphy_tb.sv +libext+.v+.sv -y . -y ../AphyPcs
+
+# Use this to include vendor library (Lattice LIFCL / "Crosslink") in this case:
+#  vsim -voptargs=+acc -L work -L ovi_lifcl aphy_tb
+
+# Open ModelSim and view the resulting waveform
+#
+# Hint:
+#  after modelsim is open you can rerun the simulation by typing "make",
+#  then reload the updated waveform with file->dataset->reload (or use
+#  "dataset reload" command)
+
+#  - you can try "restart; run -all", but it does not pick up changes
+#  - you can try "vlog ...; restart; run -all", but it moves the waveform window
+
+view: vsim.wlf
+	$(MODELSIM_PATH)vsim -view vsim.wlf </dev/tty &
+
+# Same as above, but restore waveform if you remembered to save a wave.do file
+#  to save the wave.do: select waveform window (click on border), then File->Save Format, or Ctrl-S
+
+review: vsim.wlf wave.do
+	$(MODELSIM_PATH)vsim -view vsim.wlf -do wave.do </dev/tty &
+
+clean:
+	rm -rf vsim.wlf transcript work
