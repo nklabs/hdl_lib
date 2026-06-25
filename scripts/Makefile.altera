@@ -1,0 +1,45 @@
+
+NAME = my_chip
+
+all :  work/done.cvt work/done.asm work/done.sta
+
+work/done.map : ../hdl/*.v ${NAME}.qsf
+	mkdir work; cd work && /bin/rm -rf `ls` && \
+	cp ../../hdl/*/*.vhd . && \
+	cp ../${NAME}.qsf . && \
+	quartus_map ${NAME} && \
+	echo >done.map
+
+work/done.fit : work/done.map
+	cd work && \
+	quartus_fit ${NAME} && \
+	echo >done.fit
+
+work/done.asm : work/done.fit
+	cd work && \
+	quartus_asm ${NAME} && \
+	echo >done.asm
+
+work/done.sta : work/done.fit
+	cd work && \
+	quartus_sta ${NAME} && \
+	echo >done.sta
+
+work/done.cvt : work/done.asm
+	cd work && \
+	quartus_cpf -c ${NAME}.sof ${NAME}.rbf && \
+	cat ../h ${NAME}.rbf >${NAME}.bin && \
+	echo >done.cvt
+
+# Classic
+#work/done.tan : work/done.fit
+#	cd work && \
+#	quartus_tan ${NAME} && \
+#	echo >done.tan
+
+#work/done.eda : work/done.fit
+#	cd work && \
+#	quartus_eda ${NAME} && \
+#	echo >done.eda
+
+# -possible other options... -c my_chip --read_settings_files=on

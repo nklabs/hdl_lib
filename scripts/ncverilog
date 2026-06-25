@@ -1,0 +1,1 @@
+ncverilog +libext+.v +define+DV_PREP +access+r -y `pwd`/ /opt/altera/altera8.1/quartus/eda/sim_lib/maxii_atoms.v tb.v
