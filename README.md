@@ -1,3 +1,4 @@
-# hdllib
+# NK Labs HDL Library
 
-HDL library
+Verilog and SystemVerilog open source background IP.
+
