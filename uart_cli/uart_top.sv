@@ -32,6 +32,11 @@
 // -- uart_fifo
 
 
+// UART message format:
+//    Read message:   rd <addr in hex, no leading "0x">
+//    Write message   wr <addr in hex> <data in hex>
+
+
 // IP Description: UART CLI for access to the CSR registers without RISC-V core.
 // 115200 Baud, 8N1
 
